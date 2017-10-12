@@ -1,11 +1,11 @@
 package com.example.tom.gameproject;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FingerPoint {
 
@@ -20,19 +20,32 @@ public class FingerPoint {
     //觸控點座標
     List<PointF> points = new ArrayList<PointF>();
 
+    //觸控點座標
     public float pointX;
     public float pointY;
+    //偵測範圍
+    int x1,y1,x2,y2;
 
-    public FingerPoint(){
+    public FingerPoint(int x1,int y1,int x2,int y2){
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
     }
 
     //處理觸控點座標
     public void update(android.view.MotionEvent event){
-        pointX = event.getX();
-        pointY = event.getY();
+        int size = event.getPointerCount();
+        //在偵測範圍內才更新座標
+        for (int i = 0 ; i < size ; i ++) {
+            if (x1 < event.getX(i) && event.getX(i) < x2 && y1 < event.getY(i) && event.getY(i) < y2) {
+                pointX = event.getX(i);
+                pointY = event.getY(i);
+            }
+        }
         for (int i = 0; i < event.getHistorySize(); i+=3) {
             points.add(new PointF(event.getHistoricalX(i), event
-                    .getHistoricalY(i)));
+                .getHistoricalY(i)));
         }
 
         changeVector();

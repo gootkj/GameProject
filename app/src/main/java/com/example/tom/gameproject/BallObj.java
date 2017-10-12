@@ -1,9 +1,5 @@
 package com.example.tom.gameproject;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -11,6 +7,8 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+
+import java.util.Random;
 
 public class BallObj {
 
@@ -144,13 +142,6 @@ public class BallObj {
         head.updataMove();
     }
 
-    //更新貪食蛇物件節點的移動
-    private void updataMove(exGameObj fd, exGameObj bk) {
-        bk.updataMove();
-        PointF fwp = fd.logPath[fd.logPath.length - 1];
-        bk.nextMove.set(fwp.x, fwp.y);
-    }
-
     /**
      * 範圍縮放長寬調整
      * @param rect
@@ -190,7 +181,37 @@ public class BallObj {
      * @param dy
      * 移動向量Y
      */
-    public void move(float dx, float dy) {
+    public void move(float dx, float dy, BoardObj b_1 , BoardObj b_2) {
+        PointF tempPoint = new PointF();
+        //預測下個座標點
+        tempPoint = getNextPoint(dx,dy);
+
+        //如果碰到牆壁改變方向
+        tempPoint = touchEdge(tempPoint);
+
+        //碰到玩家
+        tempPoint = touchPlayer(tempPoint,b_1);
+        tempPoint = touchPlayer(tempPoint,b_2);
+
+        //下次頭部移動點設置
+        head.nextMove.set(tempPoint.x, tempPoint.y);
+        moveFlag = true;
+    }
+
+    //移動之前方向
+    public void move(BoardObj b_1,BoardObj b_2) {
+        move(this.dstVectorX, this.dstVectorY,b_1,b_2);
+    }
+
+    //取得直角坐標角度
+    private float getAngleByXY(float dx, float dy) {
+        return (float) (Math.atan2(dy, dx) * 180 / Math.PI);
+    }
+
+    //預測下個座標點
+    public PointF getNextPoint(float dx, float dy){
+        PointF tempPoint = new PointF();
+
         this.dstVectorX = dx;
         this.dstVectorY = dy;
         //目標旋轉角度
@@ -204,9 +225,14 @@ public class BallObj {
         int moveDistance=60;
         dx = (float) Math.cos(dreg) * moveDistance;
         dy = (float) Math.sin(dreg) * moveDistance;
-        float ndx = head.logPath[0].x + dx;
-        float ndy = head.logPath[0].y + dy;
+        tempPoint.x = head.logPath[0].x + dx;
+        tempPoint.y = head.logPath[0].y + dy;
 
+        return tempPoint;
+    }
+
+    //如果下一步會碰到牆壁就改變方向
+    public PointF touchEdge(PointF tempPoint){
         //取得邊緣範圍
         RectF limitRect = new RectF(actRect);
 
@@ -214,31 +240,31 @@ public class BallObj {
         scaleRect(limitRect, -head.getWidth() / 2, -head.getHeight() / 2);
 
         //進行邊緣碰撞偵測調整
-        if (!limitRect.contains(ndx, ndy)) {
+        if (!limitRect.contains(tempPoint.x, tempPoint.y)) {
             boolean isTouchEdge = false;
-            if (ndx < limitRect.left) {//左邊邊緣偵測
+            if (tempPoint.x < limitRect.left) {//左邊邊緣偵測
                 head.angle = 180-head.angle;
 
-                ndx = limitRect.left;
+                tempPoint.x = limitRect.left;
                 isTouchEdge = true;
             }
-            if (ndx > limitRect.right) {//右邊邊緣偵測
+            if (tempPoint.x > limitRect.right) {//右邊邊緣偵測
                 head.angle = 180-head.angle;
 
-                ndx = limitRect.right;
+                tempPoint.x = limitRect.right;
                 isTouchEdge = true;
             }
 
-            if (ndy < limitRect.top) {//頂部邊緣偵測
+            if (tempPoint.y < limitRect.top) {//頂部邊緣偵測
                 head.angle = -head.angle;
 
-                ndy = limitRect.top;
+                tempPoint.y = limitRect.top;
                 isTouchEdge = true;
             }
-            if (ndy > limitRect.bottom) {//底部邊緣偵測
+            if (tempPoint.y > limitRect.bottom) {//底部邊緣偵測
                 head.angle = -head.angle;
 
-                ndy = limitRect.bottom;
+                tempPoint.y = limitRect.bottom;
                 isTouchEdge = true;
             }
 
@@ -248,27 +274,47 @@ public class BallObj {
                 this.dstVectorY = (float) Math.sin(head.angle * Math.PI / 180);
             }
         }
-        //下次頭部移動點設置
-        head.nextMove.set(ndx, ndy);
-        moveFlag = true;
+
+        return tempPoint;
     }
 
-    //移動之前方向
-    public void move() {
-        move(this.dstVectorX, this.dstVectorY);
-    }
+    //如果下一步會碰到玩家
+    public PointF touchPlayer(PointF tempPoint, BoardObj borad){
+        //假設球移動到下個位置
+        exGameObj tempHead = new exGameObj(rs.getDrawable(R.drawable.apple));
+        tempHead.move(tempPoint.x - (tempHead.getWidth()/2),tempPoint.y - (tempHead.getHeight()/2));
 
-    //取得直角坐標角度
-    private float getAngleByXY(float dx, float dy) {
-        return (float) (Math.atan2(dy, dx) * 180 / Math.PI);
-    }
+        //碰到板子
+        if(Rect.intersects(tempHead.getRect(),borad.getRect()))
+        {
 
-    //判斷是否有吃到蘋果
-    public boolean isEatApple(GameObj apple) {
-        return Rect.intersects(apple.getRect(), head.getRect());
-    }
+            float dx = tempPoint.x - borad.getPoint().x;
+            float dy = tempPoint.y - borad.getPoint().y;
+            //目標旋轉角度
+            float rotateAngle = getAngleByXY(dx, dy);
 
-    public void reFlection(){
+            //設定頭部方向
+            head.angle = rotateAngle;
+//            System.out.println(rotateAngle);
+            //取得頭部下次更新座標
+//            double dreg = head.angle * Math.PI / 180;
+//            dx = (float) Math.cos(dreg);
+//            dy = (float) Math.sin(dreg);
+//
+//            int i = 100;
+//            //一直找到沒有接觸為止
+//            while (tempHead.intersect(borad)) {
+//
+//                i++;
+//                tempPoint.x = borad.getPoint().x + dx * i ;
+//                tempPoint.y = borad.getPoint().y + dy * i ;
+//                tempHead.move(tempPoint.x,tempPoint.y);
+////                System.out.println(tempHead.intersect(borad));
+//            }
 
+        }
+        this.dstVectorX = (float) Math.cos(head.angle * Math.PI / 180);
+        this.dstVectorY = (float) Math.sin(head.angle * Math.PI / 180);
+        return tempPoint;
     }
 }

@@ -22,8 +22,8 @@ public class BoardObj extends GameObj{
         this.Right = Right;
         this.Bottom = Bottom;
 
-        point.x = Left;
-        point.y = Top;
+        point.x = (Left + Right ) / 2 ;
+        point.y = (Top + Bottom ) / 2 ;
         this.moveTo(point.x,point.y);
 
     }

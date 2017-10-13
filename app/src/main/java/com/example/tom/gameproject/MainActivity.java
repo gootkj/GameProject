@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
     GameObj backimg;
     int gameFPS = 25;
     KeyHandler keyHandler = new KeyHandler();
-    FingerPoint fingerPoint_1,fingerPoint_2;
+//    FingerPoint fingerPoint_1,fingerPoint_2;
     PowerManager.WakeLock wakeLock;
     drawAction nowDrawWork;
     Resources rs ;
@@ -74,7 +74,7 @@ public class MainActivity extends Activity {
                             .getRight(), sv.getBottom()));
 
                     //設定觸控偵測範圍
-                    initFingerPoint();
+//                    initFingerPoint();
 //                    System.out.println(sv.getLeft());0
 //                    System.out.println(sv.getTop());0
 //                    System.out.println(sv.getRight());1080
@@ -169,22 +169,25 @@ public class MainActivity extends Activity {
         this.Bottom = Bottom;
 
         //圖片和活動範圍
-        p_1 = new Player(rs.getDrawable(R.drawable.apple), Left,(Bottom/2)+100 ,Right,Bottom);
-        p_2 = new Player(rs.getDrawable(R.drawable.apple), Left,Top,Right,(Bottom/2) - 100);
+        p_1 = new Player(rs.getDrawable(R.drawable.rd1), Left,(Bottom/2)+100 ,Right,Bottom);
+        p_2 = new Player(rs.getDrawable(R.drawable.d1), Left,Top,Right,(Bottom/2) - 100);
+
     }
 
     //設定偵測範圍
-    public void initFingerPoint(){
-        fingerPoint_1 = new FingerPoint(Left,Bottom/2,Right,Bottom);
-        fingerPoint_2 = new FingerPoint(Left,Top,Right,Bottom/2);
-    }
+//    public void initFingerPoint(){
+//        fingerPoint_1 = new FingerPoint(Left,Bottom/2,Right,Bottom);
+//        fingerPoint_2 = new FingerPoint(Left,Top,Right,Bottom/2);
+//    }
 
     @Override
     public boolean onTouchEvent(android.view.MotionEvent event) {
         if (nowDrawWork == drawAction.game) {
 //            fingerPoint.update(event);
-            fingerPoint_1.update(event);
-            fingerPoint_2.update(event);
+//            fingerPoint_1.update(event);
+//            fingerPoint_2.update(event);
+            p_1.update(event);
+            p_2.update(event);
         }
         return true;
     };
@@ -223,19 +226,16 @@ public class MainActivity extends Activity {
     void readyGame() {
         gameThreadStop();
         nowDrawWork = drawAction.ready;
-        //snake = new SnakeObj(MainActivity.this, backimg.getRect());
-        ball = new BallObj(MainActivity.this, backimg.getRect());
-        //apple = new AppleObj(rs.getDrawable(R.drawable.apple), backimg.getRect());
 
-//        board = new BoardObj(rs.getDrawable(R.drawable.apple), backimg.getRect());
-//        board.random(backimg.getRect());
+        ball = new BallObj(MainActivity.this, backimg.getRect());
+
         gameStat = new GameStat(System.currentTimeMillis() + 3000);
         gameThreadStart();
     }
 
     // 開始遊戲
     void startGame() {
-        gameStat = new GameStat(System.currentTimeMillis() + 30000);
+        gameStat = new GameStat(System.currentTimeMillis() + 300000);
         nowDrawWork = drawAction.game;
     }
 
@@ -288,46 +288,12 @@ public class MainActivity extends Activity {
     void gameUpdate() {
         // 觸控事件處理
         if (true) {
-            //ball.move(fingerPoint.lastVectorX, fingerPoint.lastVectorY);
-            //board.moveTo(fingerPoint.pointX,fingerPoint.pointY);
-//            board.move(fingerPoint.pointX,fingerPoint.pointY);
-            p_1.board.move(fingerPoint_1.pointX,fingerPoint_1.pointY);
-            p_2.board.move(fingerPoint_2.pointX,fingerPoint_2.pointY);
-        } else {
-            // 按鍵事件處理
-//            if (isKeyDown(KeyEvent.KEYCODE_DPAD_RIGHT)) {
-//                ball.move(1, 0);
-//
-//            }
-//            if (isKeyDown(KeyEvent.KEYCODE_DPAD_LEFT)) {
-//                ball.move(-1, 0);
-//
-//            }
-//            if (isKeyDown(KeyEvent.KEYCODE_DPAD_UP)) {
-//                ball.move(0, -1);
-//
-//            }
-//            if (isKeyDown(KeyEvent.KEYCODE_DPAD_DOWN)) {
-//                ball.move(0, 1);
-//
-//            }
+            p_1.move();
+            p_2.move();
         }
         ball.move(p_1.board,p_2.board);
 
-        // 更新貪食蛇
         ball.update();
-
-        // 吃到蘋果處理
-//        if (ball.isEatApple(board)) {
-//            // 增加時間
-//            gameStat.addTime(3000);
-//
-//            // 蘋果位置變更
-//            while (ball.isEatApple(board))
-//                board.random(backimg.getRect());
-//        }
-        // 更新遊戲分數
-        //gameStat.updateScroe(ball.getLength());
 
         // 判斷是否結束遊戲
         if (gameStat.isTimeOver())
@@ -388,12 +354,10 @@ public class MainActivity extends Activity {
     // 畫遊戲中
     void drawGame(Canvas canvas) {
         clear(canvas);
-//        board.draw(canvas);
         p_1.board.draw(canvas);
         p_2.board.draw(canvas);
         ball.draw(canvas);
         gameStat.draw(canvas);
-//        fingerPoint.draw(canvas);
     }
 
     // 畫暫停

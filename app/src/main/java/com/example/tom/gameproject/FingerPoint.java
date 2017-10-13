@@ -31,6 +31,9 @@ public class FingerPoint {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+
+        pointX = ( x1 + x2 ) / 2;
+        pointY = ( y1 + y2 ) / 2;
     }
 
     //處理觸控點座標

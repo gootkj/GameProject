@@ -109,8 +109,14 @@ public class BallObj {
         //初始化貪食蛇物件
         head = new exGameObj(d_head);
         init(head);
+        //發球角度
         Random r=new Random();
-        head.angle = r.nextInt(360);
+        int angle = 0;
+        while (angle % 180 < 30){
+            angle = r.nextInt(360);
+        }
+        head.angle = angle;
+
         this.dstVectorX = (float) Math.cos(head.angle * Math.PI / 180);
         this.dstVectorY = (float) Math.sin(head.angle * Math.PI / 180);
     }
@@ -281,7 +287,7 @@ public class BallObj {
     //如果下一步會碰到玩家
     public PointF touchPlayer(PointF tempPoint, BoardObj borad){
         //假設球移動到下個位置
-        exGameObj tempHead = new exGameObj(rs.getDrawable(R.drawable.apple));
+        exGameObj tempHead = new exGameObj(rs.getDrawable(R.drawable.head));
         tempHead.move(tempPoint.x - (tempHead.getWidth()/2),tempPoint.y - (tempHead.getHeight()/2));
 
         //碰到板子

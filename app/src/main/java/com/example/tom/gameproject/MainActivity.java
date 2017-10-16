@@ -65,20 +65,15 @@ public class MainActivity extends Activity {
             public void surfaceCreated(SurfaceHolder arg0) {
                 if (backimg == null) {
                     // 第一次Activity載入時
-                    backimg = new GameObj(rs.getDrawable(R.drawable.backimg));
-                    SurfaceView sv = gameSurfaceView;
+//                    backimg = new GameObj(rs.getDrawable(R.drawable.backimg));
+//                    SurfaceView sv = gameSurfaceView;
+//
+//                    setSize(sv.getLeft(), sv.getTop(), sv.getRight(), sv.getBottom());
+//
+//                    backimg.setRect(new Rect(sv.getLeft(), sv.getTop(), sv
+//                            .getRight(), sv.getBottom()));
 
-                    setSize(sv.getLeft(), sv.getTop(), sv.getRight(), sv.getBottom());
 
-                    backimg.setRect(new Rect(sv.getLeft(), sv.getTop(), sv
-                            .getRight(), sv.getBottom()));
-
-                    //設定觸控偵測範圍
-//                    initFingerPoint();
-//                    System.out.println(sv.getLeft());0
-//                    System.out.println(sv.getTop());0
-//                    System.out.println(sv.getRight());1080
-//                    System.out.println(sv.getBottom());1920
                     readyGame();
                 } else {
                     // 經由Activity返回載入時
@@ -224,6 +219,15 @@ public class MainActivity extends Activity {
 
     // 準備遊戲
     void readyGame() {
+
+        backimg = new GameObj(rs.getDrawable(R.drawable.backimg));
+        SurfaceView sv = gameSurfaceView;
+
+        setSize(sv.getLeft(), sv.getTop(), sv.getRight(), sv.getBottom());
+
+        backimg.setRect(new Rect(sv.getLeft(), sv.getTop(), sv
+                .getRight(), sv.getBottom()));
+
         gameThreadStop();
         nowDrawWork = drawAction.ready;
 

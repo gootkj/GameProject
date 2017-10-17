@@ -2,6 +2,7 @@ package com.example.tom.gameproject;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -24,22 +25,21 @@ public class MainActivity extends Activity {
     GameObj backimg;
     int gameFPS = 25;
     KeyHandler keyHandler = new KeyHandler();
-//    FingerPoint fingerPoint_1,fingerPoint_2;
     PowerManager.WakeLock wakeLock;
     drawAction nowDrawWork;
     Resources rs ;
 
+    GameApplication app;
     //螢幕Size
     int Left, Top, Right , Bottom;
     Player p_1,p_2;
     BallObj ball;
-//    BoardObj board;
-    GameStat gameStat;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        app = (GameApplication) getApplication();
         // 隱藏狀態列
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -54,6 +54,11 @@ public class MainActivity extends Activity {
         wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK,
                 "GameSnake PowerControl");
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         rs = getResources();
 
         gameSurfaceView = new SurfaceView(this);
@@ -63,19 +68,9 @@ public class MainActivity extends Activity {
             }
 
             public void surfaceCreated(SurfaceHolder arg0) {
-                if (backimg == null) {
-                    // 第一次Activity載入時
-//                    backimg = new GameObj(rs.getDrawable(R.drawable.backimg));
-//                    SurfaceView sv = gameSurfaceView;
-//
-//                    setSize(sv.getLeft(), sv.getTop(), sv.getRight(), sv.getBottom());
-//
-//                    backimg.setRect(new Rect(sv.getLeft(), sv.getTop(), sv
-//                            .getRight(), sv.getBottom()));
-
-
+                if (app.gameStat == GameApplication.action.ready) {
                     readyGame();
-                } else {
+                }else {
                     // 經由Activity返回載入時
                     draw(nowDrawWork);
                     openOptionsMenu();
@@ -157,7 +152,7 @@ public class MainActivity extends Activity {
     }
 
     //設定螢幕Size
-    public void setSize(int Left, int Top, int Right , int Bottom){
+    public void playerSetSize(int Left, int Top, int Right , int Bottom){
         this.Left = Left;
         this.Top = Top;
         this.Right = Right;
@@ -169,18 +164,9 @@ public class MainActivity extends Activity {
 
     }
 
-    //設定偵測範圍
-//    public void initFingerPoint(){
-//        fingerPoint_1 = new FingerPoint(Left,Bottom/2,Right,Bottom);
-//        fingerPoint_2 = new FingerPoint(Left,Top,Right,Bottom/2);
-//    }
-
     @Override
     public boolean onTouchEvent(android.view.MotionEvent event) {
         if (nowDrawWork == drawAction.game) {
-//            fingerPoint.update(event);
-//            fingerPoint_1.update(event);
-//            fingerPoint_2.update(event);
             p_1.update(event);
             p_2.update(event);
         }
@@ -219,27 +205,29 @@ public class MainActivity extends Activity {
 
     // 準備遊戲
     void readyGame() {
-
+        //背景
         backimg = new GameObj(rs.getDrawable(R.drawable.backimg));
         SurfaceView sv = gameSurfaceView;
-
-        setSize(sv.getLeft(), sv.getTop(), sv.getRight(), sv.getBottom());
 
         backimg.setRect(new Rect(sv.getLeft(), sv.getTop(), sv
                 .getRight(), sv.getBottom()));
 
+        //設定上下兩個玩家
+        playerSetSize(sv.getLeft(), sv.getTop(), sv.getRight(), sv.getBottom());
+
         gameThreadStop();
         nowDrawWork = drawAction.ready;
 
-        ball = new BallObj(MainActivity.this, backimg.getRect());
+        ball = new BallObj(MainActivity.this, backimg.getRect(),app);
 
-        gameStat = new GameStat(System.currentTimeMillis() + 3000);
+//        app.setTime(System.currentTimeMillis() + 3000);
+
         gameThreadStart();
     }
 
     // 開始遊戲
     void startGame() {
-        gameStat = new GameStat(System.currentTimeMillis() + 300000);
+        app.gameStat = GameApplication.action.game;
         nowDrawWork = drawAction.game;
     }
 
@@ -247,7 +235,7 @@ public class MainActivity extends Activity {
     void pauseGame() {
         gameThreadStop();
         if (nowDrawWork != drawAction.over) {
-            gameStat.timePause();
+            //gameStat.timePause();
             draw(drawAction.pause);
         }
 
@@ -257,7 +245,7 @@ public class MainActivity extends Activity {
     void resumeGame() {
         if (nowDrawWork != drawAction.over) {
             gameThreadStart();
-            gameStat.timeResume();
+            //gameStat.timeResume();
         }
     }
 
@@ -268,7 +256,7 @@ public class MainActivity extends Activity {
                 long startTime = System.currentTimeMillis();
 
                 if (nowDrawWork == drawAction.game)
-                    gameUpdate();
+                {gameUpdate();}
                 draw(nowDrawWork);
                 long endTime = System.currentTimeMillis();
                 long waitTime = delayTime - (endTime - startTime);
@@ -300,8 +288,9 @@ public class MainActivity extends Activity {
         ball.update();
 
         // 判斷是否結束遊戲
-        if (gameStat.isTimeOver())
+        if (app.gameStat == GameApplication.action.over) {
             nowDrawWork = drawAction.over;
+        }
     }
 
     // 畫面繪圖種類
@@ -344,15 +333,18 @@ public class MainActivity extends Activity {
 
     // 畫準備開始
     void drawReady(Canvas canvas) {
-        clear(canvas);
-        Paint pt = new Paint();
-        pt.setTextAlign(Paint.Align.CENTER);
-        pt.setARGB(255, 0, 0, 255);
-        pt.setTextSize(30);
-        canvas.drawText(gameStat.getCountdownTime() + "秒後遊戲開始-", backimg
-                .centerX(), backimg.centerY(), pt);
-        if (gameStat.isTimeOver())
-            startGame();
+        //clear(canvas);
+//        Paint pt = new Paint();
+//        pt.setTextAlign(Paint.Align.CENTER);
+//        pt.setARGB(255, 0, 0, 255);
+//        pt.setTextSize(60);
+//        canvas.drawText(app.getCountdownTime() + "秒後遊戲開始-", backimg
+//                .centerX(), backimg.centerY(), pt);
+//        if (app.isTimeOver())
+//        {startGame();}
+        //倒數放到menu頁
+        startGame();
+        app.setStartTime();
     }
 
     // 畫遊戲中
@@ -361,7 +353,7 @@ public class MainActivity extends Activity {
         p_1.board.draw(canvas);
         p_2.board.draw(canvas);
         ball.draw(canvas);
-        gameStat.draw(canvas);
+        //gameStat.draw(canvas);
     }
 
     // 畫暫停
@@ -378,21 +370,17 @@ public class MainActivity extends Activity {
 
     // 畫遊戲結束
     void drawOver(Canvas canvas) {
-        // 執行緒停止
         gameThreadStop();
-        drawGame(canvas);
-        Paint pt = new Paint();
-        pt.setARGB(30, 30, 30, 30);
-        canvas.drawRect(backimg.getRect(), pt);
-        pt.setTextAlign(Paint.Align.CENTER);
-        pt.setARGB(100, 0, 0, 255);
-        pt.setTextSize(50);
-        canvas.drawText("-遊戲結束-", backimg.centerX(), backimg.centerY(), pt);
+        //回上頁
+        Intent it = new Intent();
+        setResult(RESULT_OK, it);
+        finish();
+
     }
 
     void clear(Canvas canvas) {
-        Paint p = new Paint();
-        p.setARGB(100, 0, 0, 0);
+//        Paint p = new Paint();
+//        p.setARGB(100, 0, 0, 0);
         backimg.draw(canvas);
     }
 

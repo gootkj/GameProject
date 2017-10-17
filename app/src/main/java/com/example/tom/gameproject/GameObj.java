@@ -143,6 +143,8 @@ public class GameObj {
 
 	public void draw(Canvas canvas) {
 		if (Visible) {
+			System.out.println(canvas);
+			System.out.println(drawable.toString());
 			canvas.save();
 			canvas.rotate(angle, drawable.getBounds().centerX(), drawable
 					.getBounds().centerY());

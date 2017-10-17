@@ -94,8 +94,34 @@ public class BallObj {
      */
     private float dstVectorY = 0;
 
-    private boolean moveFlag = true;
+    //遊戲狀態
+    GameApplication app;
 
+    public BallObj(Activity content, Rect actRect,GameApplication app ) {
+        this.actRect = actRect;
+        rs = content.getResources();
+        // 頭部影像資源
+        Drawable d_head = rs.getDrawable(R.drawable.head);
+        // 身體影像資源
+        Drawable d_body = rs.getDrawable(R.drawable.body);
+        // 尾部影像資源
+        Drawable d_tail = rs.getDrawable(R.drawable.tail);
+
+        this.app = app;
+        //初始化貪食蛇物件
+        head = new exGameObj(d_head);
+        init(head);
+        //發球角度
+        Random r=new Random();
+        int angle = 0;
+        while (angle % 180 < 30 || angle == 90){
+            angle = r.nextInt(360);
+        }
+        head.angle = angle;
+
+        this.dstVectorX = (float) Math.cos(head.angle * Math.PI / 180);
+        this.dstVectorY = (float) Math.sin(head.angle * Math.PI / 180);
+    }
     public BallObj(Activity content, Rect actRect) {
         this.actRect = actRect;
         rs = content.getResources();
@@ -105,6 +131,7 @@ public class BallObj {
         Drawable d_body = rs.getDrawable(R.drawable.body);
         // 尾部影像資源
         Drawable d_tail = rs.getDrawable(R.drawable.tail);
+
 
         //初始化貪食蛇物件
         head = new exGameObj(d_head);
@@ -201,7 +228,6 @@ public class BallObj {
 
         //下次頭部移動點設置
         head.nextMove.set(tempPoint.x, tempPoint.y);
-        moveFlag = true;
     }
 
     //移動之前方向
@@ -228,7 +254,9 @@ public class BallObj {
 
         //取得頭部下次更新座標
         double dreg = head.angle * Math.PI / 180;
-        int moveDistance=60;
+        int time = app.getGameTime();
+        int moveDistance=30 + time;
+
         dx = (float) Math.cos(dreg) * moveDistance;
         dy = (float) Math.sin(dreg) * moveDistance;
         tempPoint.x = head.logPath[0].x + dx;
@@ -266,12 +294,18 @@ public class BallObj {
 
                 tempPoint.y = limitRect.top;
                 isTouchEdge = true;
+
+                app.winner = 1;
+                app.gameStat = GameApplication.action.over;
             }
             if (tempPoint.y > limitRect.bottom) {//底部邊緣偵測
                 head.angle = -head.angle;
 
                 tempPoint.y = limitRect.bottom;
                 isTouchEdge = true;
+
+                app.winner = 2;
+                app.gameStat = GameApplication.action.over;
             }
 
             if (isTouchEdge) {
@@ -301,22 +335,6 @@ public class BallObj {
 
             //設定頭部方向
             head.angle = rotateAngle;
-//            System.out.println(rotateAngle);
-            //取得頭部下次更新座標
-//            double dreg = head.angle * Math.PI / 180;
-//            dx = (float) Math.cos(dreg);
-//            dy = (float) Math.sin(dreg);
-//
-//            int i = 100;
-//            //一直找到沒有接觸為止
-//            while (tempHead.intersect(borad)) {
-//
-//                i++;
-//                tempPoint.x = borad.getPoint().x + dx * i ;
-//                tempPoint.y = borad.getPoint().y + dy * i ;
-//                tempHead.move(tempPoint.x,tempPoint.y);
-////                System.out.println(tempHead.intersect(borad));
-//            }
 
         }
         this.dstVectorX = (float) Math.cos(head.angle * Math.PI / 180);
